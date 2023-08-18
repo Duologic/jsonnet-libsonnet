@@ -1,19 +1,22 @@
 {
   local root = self,
 
-  literal(literal): { toString(indent='', break=''): indent + literal },
+  literal(literal): { toString(indent='', break=''): indent + std.toString(literal) },
 
-  'null': root.literal('null'),
-  'true': root.literal('true'),
-  'false': root.literal('false'),
+  'null': root.literal(null),
+  'true': root.literal(true),
+  'false': root.literal(false),
   'self': root.literal('self'),
   dollar: root.literal('$'),
-  string(string): root.literal("'%s'" % string),
-  number(number): root.literal(std.manifestJson(number)),
+  string(string): root.literal(
+    if "'" in string
+    then '"%s"' % string
+    else "'%s'" % string
+  ),
+  number(number): root.literal(number),
 
   object: {
     members(members=[]): {
-      members: members,
       toString(indent='', break=''):
         std.join('', [
           indent,
@@ -23,10 +26,10 @@
             ',' + break,
             [
               member.toString(indent + '  ', break)
-              for member in self.members
+              for member in members
             ]
           ),
-          (if std.length(self.members) > 0
+          (if std.length(members) > 0
            then ','
            else ''),
           break,
@@ -58,7 +61,6 @@
 
   array: {
     items(items=[]): {
-      items: items,
       toString(indent='', break=''):
         std.join('', [
           indent,
@@ -72,7 +74,7 @@
                  else indent),
                 break,
               )
-              for item in self.items
+              for item in items
             ]
           ),
           break,
@@ -98,12 +100,18 @@
     },
   },
 
-  fieldaccess(expr, id): {
+  fieldaccess(exprs, id): {
     toString(indent='', break=''):
-      std.join('.', [
-        expr.toString(indent, break),
-        id.toString(),
-      ]),
+      std.join(
+        '.',
+        [
+          expr.toString(indent, break)
+          for expr in exprs
+        ]
+        + [
+          id.toString(),
+        ]
+      ),
   },
 
   indexing(expr, exprs=[]): {
@@ -194,21 +202,25 @@
       ),
   },
 
-  binary(sign, expr1, expr2): {
+  binary(sign, exprs=[]): {
     toString(indent='', break=''):
-      std.join(' ', [
-        expr1.toString(indent, break),
-        sign,
-        expr2.toString(indent, break),
-      ]),
+      indent
+      + std.join(
+        ' ' + sign + ' ',
+        [
+          expr.toString()
+          + (if std.length(exprs) > 2
+             then break + indent + ' '
+             else '')
+          for expr in exprs
+        ]
+      ),
   },
 
   unary(sign, expr): {
     toString(indent='', break=''):
-      std.join('', [
-        sign,
-        expr.toString(indent, break),
-      ]),
+      sign
+      + expr.toString(indent, break),
   },
 
   anonymousfunction(expr, params=[]): {

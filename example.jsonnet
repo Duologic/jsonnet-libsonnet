@@ -5,7 +5,7 @@ local obj = j.object.members([
     j.fieldname.id('hello'),
     j.functioncall(
       j.fieldaccess(
-        j['self'],
+        [j['self']],
         j.id('heloF'),
       ),
       [
@@ -16,7 +16,9 @@ local obj = j.object.members([
           j.id('secondparam'),
           j.array.items([
             j.string('c'),
-            j.string('d'),
+            j.number(1),
+            j.number(5.3),
+            j.literal({}),
           ]),
         ),
       ],
@@ -61,7 +63,7 @@ local obj = j.object.members([
   local p = j.id('secondparam');
   j.member.field.func(
     j.fieldname.id('heloF'),
-    p,
+    j.binary('+', [p, p]),
     [
       j.param.id('param1'),
       j.param.expr(
@@ -79,7 +81,10 @@ local obj = j.object.members([
         j.id('abool'),
         j.array.items(),
         j.indexing(
-          j.fieldaccess(j['self'], j.id('helo')),
+          j.fieldaccess(
+            [j['self']],
+            j.id('helo')
+          ),
           [
             j.number(1),
             j.number(6),
@@ -96,7 +101,7 @@ local obj = j.object.members([
     j.fieldname.id('c'),
     j.functioncall(
       j.fieldaccess(
-        j['self'],
+        [j['self']],
         j.id('b'),
       ),
       [
