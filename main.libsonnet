@@ -8,11 +8,7 @@
   'false': root.literal(false),
   'self': root.literal('self'),
   dollar: root.literal('$'),
-  string(string): root.literal(
-    if "'" in string
-    then '"%s"' % string
-    else "'%s'" % string
-  ),
+  string(string): root.literal("'%s'" % string),
   number(number): root.literal(number),
 
   object: {
