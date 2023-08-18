@@ -1,13 +1,15 @@
 {
   local root = self,
 
-  'null': { toString(indent='', break=''): indent + 'null' },
-  'true': { toString(indent='', break=''): indent + 'true' },
-  'false': { toString(indent='', break=''): indent + 'false' },
-  'self': { toString(indent='', break=''): indent + 'self' },
-  dollar: { toString(indent='', break=''): indent + '$' },
-  string(string): { toString(indent='', break=''): indent + "'%s'" % string },
-  number(number): { toString(indent='', break=''): indent + '%s' % std.manifestJson(number) },
+  literal(literal): { toString(indent='', break=''): indent + literal },
+
+  'null': root.literal('null'),
+  'true': root.literal('true'),
+  'false': root.literal('false'),
+  'self': root.literal('self'),
+  dollar: root.literal('$'),
+  string(string): root.literal("'%s'" % string),
+  number(number): root.literal(std.manifestJson(number)),
 
   object: {
     members(members=[]): {
