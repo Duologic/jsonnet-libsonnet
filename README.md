@@ -14,16 +14,16 @@ I've implemented [static rendering for CRDsonnet](https://github.com/crdsonnet/c
 
 ## Usage
 
-See [example.libsonnet](./example.libsonnet) on how to use it.
+See [example.jsonnet](./example.jsonnet) on how to use it.
 
 Execute it like so:
 
 ```
-jsonnet -S example.libsonnet
+jsonnet -S example.jsonnet
 ```
 
 Or to directly execute the resulting jsonnet:
 
 ```
-jsonnet -S example.libsonnet | jsonnet -
+jsonnet -S example.jsonnet | jsonnet -
 ```
