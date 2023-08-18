@@ -12,18 +12,41 @@ And:
 
 I've implemented [static rendering for CRDsonnet](https://github.com/crdsonnet/crdsonnet#static-rendering) a while back but have never felt very confident in it, the engine has been built through trial-and-error without following the spec. With this library I can now implement a rendering engine that works according to spec, boosting confidence that this will return valid Jsonnet.
 
+
+## Install
+
+```
+jb install github.com/Duologic/jsonnet-libsonnet
+```
+
 ## Usage
 
-See [example.jsonnet](./example.jsonnet) on how to use it.
+```jsonnet
+local j = import 'github.com/Duologic/jsonnet-libsonnet/main.libsonnet';
+
+j.object.members([
+  j.member.field.field(
+    j.fieldname.id('hello'),
+    j.string('world')
+  ),
+]).toString()
+```
 
 Execute it like so:
 
 ```
-jsonnet -S example.jsonnet
+$ jsonnet -S example.jsonnet
+
+{  hello:    'world',}
 ```
 
-Or to directly execute the resulting jsonnet:
+Or execute the resulting jsonnet directly:
 
 ```
-jsonnet -S example.jsonnet | jsonnet -
+$ jsonnet -S example.jsonnet | jsonnet -
+{
+   "hello": "world"
+}
 ```
+
+See [example.jsonnet](./example.jsonnet) for more elaborate examples.
