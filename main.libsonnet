@@ -1,4 +1,4 @@
-local j = {
+{
   local root = self,
 
   'null': { toString(indent='', break=''): indent + 'null' },
@@ -20,8 +20,8 @@ local j = {
           std.join(
             ',' + break,
             [
-              m.toString(indent + '  ', break)
-              for m in self.members
+              member.toString(indent + '  ', break)
+              for member in self.members
             ]
           ),
           (if std.length(self.members) > 0
@@ -34,14 +34,15 @@ local j = {
     },
     forloop(idexpr, expr, forspec, compspec=[]): {
       toString(indent='', break=''):
-        std.join(
-          '\n' + indent,
+        indent
+        + std.join(
+          break + indent,
           [
-            indent + '{',
+            '{',
             root.field.field(
               root.fieldname.expr(idexpr),
               expr,
-            ).toString(indent),
+            ).toString(indent, break),
             forspec.toString(indent),
           ]
           + [
@@ -64,10 +65,9 @@ local j = {
           std.join(
             ',' + break, [
               item.toString(
-                indent
-                + (if break != ''
-                   then '  '
-                   else ''),
+                (if break != ''
+                 then indent + '  '
+                 else indent),
                 break,
               )
               for item in self.items
@@ -84,7 +84,7 @@ local j = {
           '\n' + indent,
           [
             indent + '[',
-            expr.toString(indent, break),
+            expr.toString(indent),
             forspec.toString(indent),
           ]
           + [
@@ -97,9 +97,9 @@ local j = {
   },
 
   fieldaccess(expr, id): {
-    toString(indent=''):
+    toString(indent='', break=''):
       std.join('.', [
-        expr.toString(indent),
+        expr.toString(indent, break),
         id.toString(),
       ]),
   },
@@ -140,28 +140,116 @@ local j = {
   },
 
   id(string): {
-    toString(indent='', break=''): indent + std.toString(string),
+    toString(indent='', break=''):
+      (if break != ''
+       then '    '
+       else '') +
+      indent
+      + std.toString(string),
   },
 
-  localbind: {},
+  localbind(bind, expr, binds=[]): {
+    toString(indent='', break=''):
+      indent
+      + std.join(
+        '', [
+          'local ',
+          std.join(
+            ',' + break, [
+              b.toString(indent, break)
+              for b in [bind] + binds
+            ]
+          ),
+          ';',
+          break,
+          expr.toString(indent, break),
+        ]
+      ),
+  },
 
-  // TODO
-  // local bind { , bind } ; expr
-  // if expr then expr [ else expr ]
-  // expr binaryop expr
-  // unaryop expr
-  // expr { objinside }
-  // function ( [ params ] ) expr
-  // assert ; expr
-  // import string
-  // importstr string
-  // importbin string
-  // error expr
-  // expr in super
+  conditional(ifexpr, thenexpr, elseexpr=null): {
+    toString(indent='', break=''):
+      std.join(
+        '',
+        [
+          indent,
+          '(if ',
+          ifexpr.toString(),
+          '\n',
+          indent,
+          ' then ',
+          thenexpr.toString(),
+        ]
+        + (if elseexpr != null
+           then [
+             '\n',
+             indent,
+             ' else ',
+             elseexpr.toString(),
+           ]
+           else [])
+        + [')']
+      ),
+  },
+
+  binary(sign, expr1, expr2): {
+    toString(indent='', break=''):
+      std.join(' ', [
+        expr1.toString(indent, break),
+        sign,
+        expr2.toString(indent, break),
+      ]),
+  },
+
+  unary(sign, expr): {
+    toString(indent='', break=''):
+      std.join('', [
+        sign,
+        expr.toString(indent, break),
+      ]),
+  },
+
+  anonymousfunction(expr, params=[]): {
+    toString(indent='', break=''):
+      std.join('', [
+        indent,
+        'function',
+        '(',
+        root.params(params).toString(),
+        ')',
+        break,
+        expr.toString(indent + '  ', break),
+      ]),
+  },
+
+  _assertion_expr(assertion, expr): {
+    toString(indent='', break=''):
+      std.join(';', [
+        assertion.toString(indent, break),
+        expr.toString(indent, break),
+      ]),
+  },
+
+  importF(string): { toString(indent='', break=''): indent + 'import ' + string },
+  importstrF(string): { toString(indent='', break=''): indent + 'importstr ' + string },
+  importbinF(string): { toString(indent='', break=''): indent + 'importbin ' + string },
+
+  err(expr): {
+    toString(indent='', break=''):
+      indent
+      + 'error '
+      + expr.toString(indent, break),
+  },
+
+  expr_in_super(expr): {
+    toString(indent='', break=''):
+      expr.toString(indent, break)
+      + ' in super',
+  },
 
   member: {
-    objlocal: {},
-    'assert': {},
+    objlocal: root.objlocal,
+    assertion: root.assertion,
     field: root.field,
   },
 
@@ -178,13 +266,7 @@ local j = {
            then '::'
            else ':'),
           break,
-          expr.toString(
-            indent
-            + (if break != ''
-               then '  '
-               else ''),
-            break,
-          ),
+          expr.toString(indent + '  ', break),
         ]),
     },
     func(fieldname, expr, params=[], hidden=false): {
@@ -193,41 +275,41 @@ local j = {
           indent,
           fieldname.toString(),
           '(',
-          std.join(
-            ', ',
-            [
-              param.toString()
-              for param in params
-            ]
-          ),
+          root.params(params).toString(),
           ')',
           (if hidden
            then '::'
            else ':'),
           break,
+          indent,
           expr.toString(indent + '  ', break),
         ]),
     },
   },
 
-  objlocal: {},
+  objlocal(bind): {
+    toString(indent='', break=''):
+      indent
+      + std.join(' ', [
+        'local',
+        bind.toString(indent, break),
+      ]),
+  },
 
   compspec: {
     forspec: root.forspec,
     ifspec: root.ifspec,
   },
 
-  forspec: {
-    new(id, expr): {
-      toString(indent):
-        indent
-        + std.join(' ', [
-          'for',
-          id.toString(),
-          'in',
-          expr.toString(),
-        ]),
-    },
+  forspec(id, expr): {
+    toString(indent):
+      indent
+      + std.join(' ', [
+        'for',
+        id.toString(),
+        'in',
+        expr.toString(),
+      ]),
   },
 
   ifspec(expr): {
@@ -242,14 +324,25 @@ local j = {
     },
   },
 
-  'assert': {},
+  assertion(expr, return=null): {
+    toString(indent='', break=''):
+      std.join(
+        ' ',
+        [
+          'assert',
+          expr.toString(),
+          ':',
+        ]
+        + (if return != null
+           then [return.toString()]
+           else [])
+      ),
+  },
 
   bind: {
     bind(id, expr): {
       toString(indent='', break=''):
-        std.join(' ', [
-          indent,
-          'local',
+        std.join('', [
           id.toString(),
           '=',
           expr.toString(),
@@ -258,16 +351,9 @@ local j = {
     func(id, expr, params=[]): {
       toString(indent='', break=''):
         std.join('', [
-          indent,
           id.toString(),
           '(',
-          std.join(
-            ', ',
-            [
-              param.toString()
-              for param in params
-            ]
-          ),
+          root.params(params).toString(),
           ')',
           '=',
           break,
@@ -288,6 +374,17 @@ local j = {
     },
   },
 
+  params(params): {
+    toString():
+      std.join(
+        ', ',
+        [
+          param.toString()
+          for param in params
+        ]
+      ),
+  },
+
   param: {
     id: root.id,
     expr(id, expr): {
@@ -299,86 +396,4 @@ local j = {
         ]),
     },
   },
-};
-
-
-local obj = j.object.members([
-  j.member.field.field(
-    j.fieldname.id('hello'),
-    j.functioncall(
-      j.fieldaccess(
-        j['self'],
-        j.id('heloF'),
-      ),
-      [
-        j.arg.expr(
-          j.array.items()
-        ),
-        j.arg.id(
-          j.id('secondparam'),
-          j.array.items([
-            j.string('c'),
-            j.string('d'),
-          ]),
-        ),
-      ],
-    ),
-  ),
-  j.member.field.field(
-    j.fieldname.string('helo'),
-    j.array.forloop(
-      j.id('value'),
-      j.forspec.new(
-        j.id('value'),
-        j.array.items([
-          j.string('heloitem' + i)
-          for i in std.range(0, 10)
-        ]),
-      )
-    ),
-  ),
-  j.member.field.field(
-    j.fieldname.string('hleo'),
-    j.object.forloop(
-      j.id('value'),
-      j.id('value'),
-      j.forspec.new(
-        j.id('value'),
-        j.array.items([
-          j.string('a'),
-          j.string('b'),
-        ]),
-      ),
-      [
-        j.ifspec(j['true']),
-      ]
-    ),
-  ),
-  local p = j.id('secondparam');
-  j.member.field.func(
-    j.fieldname.id('heloF'),
-    p,
-    [
-      j.param.id('param1'),
-      j.param.expr(
-        p,
-        j.array.items(),
-      ),
-    ],
-    hidden=true,
-  ),
-
-  j.member.field.field(
-    j.fieldname.id('b'),
-    j.indexing(
-      j.fieldaccess(j['self'], j.id('helo')),
-      [
-        j.number(1),
-        j.number(6),
-        j.number(2),
-      ]
-    )
-  ),
-]);
-
-obj.toString(indent='', break='\n')
+}
