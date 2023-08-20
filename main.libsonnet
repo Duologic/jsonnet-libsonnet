@@ -13,6 +13,17 @@
 
   object: {
     members(members=[]): {
+      assert (
+        local fieldnames = [
+          m.fieldname
+          for m in members
+          if 'fieldname' in m
+        ];
+        local hasDuplicates =
+          std.set(fieldnames) == std.sort(fieldnames);
+        hasDuplicates
+      ) : 'Object has duplicate fieldnames.',
+
       toString(indent='', break=''):
         std.join('', [
           indent,
@@ -265,6 +276,7 @@
 
   field: {
     field(fieldname, expr, additive=false, hidden=false): {
+      fieldname: fieldname.toString(),
       toString(indent='', break=''):
         std.join('', [
           indent,
@@ -280,6 +292,7 @@
         ]),
     },
     func(fieldname, expr, params=[], hidden=false): {
+      fieldname: fieldname.toString(),
       toString(indent='', break=''):
         std.join('', [
           indent,
