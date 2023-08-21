@@ -11,18 +11,33 @@
   string(string): root.literal("'%s'" % string),
   number(number): root.literal(number),
 
+
+  local findDuplicates(arr) =
+    std.foldl(
+      function(acc, i)
+        acc + {
+          items+: [i],
+          duplicates+:
+            if std.member(acc.items, i)
+            then [i]
+            else [],
+        },
+      arr,
+      { items: [], duplicates: [] }
+    ).duplicates,
+
   object: {
     members(members=[]): {
+      local duplicates = findDuplicates(
+        std.filterMap(
+          function(m) 'fieldname' in m,
+          function(m) m.fieldname,
+          members,
+        )
+      ),
       assert (
-        local fieldnames = [
-          m.fieldname
-          for m in members
-          if 'fieldname' in m
-        ];
-        local hasDuplicates =
-          std.set(fieldnames) == std.sort(fieldnames);
-        hasDuplicates
-      ) : 'Object has duplicate fieldnames.',
+        std.length(duplicates) == 0
+      ) : 'Object has duplicate fieldnames: %s' % std.manifestJson(duplicates),
 
       toString(indent='', break=''):
         std.join('', [
