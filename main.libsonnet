@@ -266,9 +266,9 @@
       ]),
   },
 
-  importF(string): { toString(indent='', break=''): indent + 'import ' + string },
-  importstrF(string): { toString(indent='', break=''): indent + 'importstr ' + string },
-  importbinF(string): { toString(indent='', break=''): indent + 'importbin ' + string },
+  importF(string): { toString(indent='', break=''): indent + 'import ' + root.string(string) },
+  importstrF(string): { toString(indent='', break=''): indent + 'importstr ' + root.string(string) },
+  importbinF(string): { toString(indent='', break=''): indent + 'importbin ' + root.string(string) },
 
   err(expr): {
     toString(indent='', break=''):
