@@ -269,9 +269,9 @@
       ]),
   },
 
-  importF(string): { toString(indent='', break=''): indent + 'import ' + root.string(string) },
-  importstrF(string): { toString(indent='', break=''): indent + 'importstr ' + root.string(string) },
-  importbinF(string): { toString(indent='', break=''): indent + 'importbin ' + root.string(string) },
+  importF(string): { toString(indent='', break=''): indent + 'import ' + root.string(string).toString() },
+  importstrF(string): { toString(indent='', break=''): indent + 'importstr ' + root.string(string).toString() },
+  importbinF(string): { toString(indent='', break=''): indent + 'importbin ' + root.string(string).toString() },
 
   err(expr): {
     toString(indent='', break=''):
