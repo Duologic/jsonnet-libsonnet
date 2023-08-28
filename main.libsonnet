@@ -11,6 +11,9 @@
   string(string): root.literal("'%s'" % string),
   number(number): root.literal(number),
 
+  parenthesis(expr): {
+    toString(indent='', break=''): indent + '(' + expr.toString(indent, break) + ')',
+  },
 
   local findDuplicates(arr) =
     std.foldl(
