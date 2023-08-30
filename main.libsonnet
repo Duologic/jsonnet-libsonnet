@@ -31,6 +31,8 @@
 
   object: {
     members(members=[]): {
+      members: members,
+
       local duplicates = findDuplicates(
         std.filterMap(
           function(m) 'fieldname' in m,
