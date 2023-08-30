@@ -34,7 +34,7 @@
       local duplicates = findDuplicates(
         std.filterMap(
           function(m) 'fieldname' in m,
-          function(m) m.fieldname,
+          function(m) m.fieldname.toString(),
           members,
         )
       ),
@@ -294,7 +294,8 @@
 
   field: {
     field(fieldname, expr, additive=false, hidden=false): {
-      fieldname: fieldname.toString(),
+      fieldname: fieldname,
+      expr: expr,
       toString(indent='', break=''):
         std.join('', [
           indent,
@@ -310,7 +311,7 @@
         ]),
     },
     func(fieldname, expr, params=[], hidden=false): {
-      fieldname: fieldname.toString(),
+      fieldname: fieldname,
       toString(indent='', break=''):
         std.join('', [
           indent,
