@@ -295,7 +295,7 @@
   },
 
   field: {
-    field(fieldname, expr, additive=false, hidden=false): {
+    field(fieldname, expr, additive=false, hidden=false, nobreak=false): {
       fieldname: fieldname,
       expr: expr,
       toString(indent='', break=''):
@@ -308,11 +308,13 @@
           (if hidden
            then '::'
            else ':'),
-          break,
+          (if nobreak
+           then ''
+           else break),
           expr.toString(indent + '  ', break),
         ]),
     },
-    func(fieldname, expr, params=[], hidden=false): {
+    func(fieldname, expr, params=[], hidden=false, nobreak=false): {
       fieldname: fieldname,
       toString(indent='', break=''):
         std.join('', [
@@ -324,7 +326,9 @@
           (if hidden
            then '::'
            else ':'),
-          break,
+          (if nobreak
+           then ''
+           else break),
           indent,
           expr.toString(indent + '  ', break),
         ]),
