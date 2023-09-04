@@ -144,6 +144,8 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
       function(acc, fieldname)
         if fieldname == ''  // fieldname can be empty if path='.'
         then acc
+        else if self.type(acc) == 'field'  // when acc is a field, assume end?
+        then acc
         else
           self.get(
             acc,
