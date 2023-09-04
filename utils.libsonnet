@@ -75,16 +75,16 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
   objectHasAll(astObject, fieldname): self.objectHasEx(astObject, fieldname, hidden=true),
 
   deepMergeObjects(astObjects):
-    self.deepMergeObjectFields(
-      j.object.members([
+    j.object.members(
+      self.deepMergeObjectFields([
         member
         for obj in astObjects
         for member in obj.members
       ])
     ),
 
-  deepMergeObjectFields(astObject):
-    local fields = std.foldl(
+  deepMergeObjectFields(astFields):
+    std.foldl(
       function(acc, field)
         local fieldname = fieldnameValue(field.fieldname);
         if fieldname != null
@@ -97,10 +97,8 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
                 j.field.field(
                   field.fieldname,
                   self.deepMergeObjectFields(
-                    j.object.members(
-                      item.expr.members
-                      + field.expr.members
-                    )
+                    item.expr.members
+                    + field.expr.members,
                   ),
                   additive=item.additive || field.additive,
                   hidden=item.hidden || field.hidden,
@@ -109,10 +107,9 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
             acc,
           )
         else acc + [field],
-      astObject.members,
+      astFields,
       []
-    );
-    j.object.members(fields),
+    ),
 
   setFieldsAtPath(to, members, additive=true, hidden=false):
     std.foldr(
