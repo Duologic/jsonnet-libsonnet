@@ -26,6 +26,8 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
   // std.isObject(v)
   isObject(ast): self.type(ast) == 'object',
 
+  isField(ast): self.type(ast) == 'field',
+
   // std.get(o, f, default=null, inc_hidden=true)
   // returns astField or default
   get(astObject, fieldname, default=null, inc_hidden=true):
@@ -93,6 +95,10 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
           std.map(
             function(item)
               if fieldnameValue(item.fieldname) == fieldname
+                 && self.isField(item)
+                 && self.isField(field)
+                 && self.isObject(item.expr)
+                 && self.isObject(field.expr)
               then
                 j.field.field(
                   field.fieldname,
@@ -105,6 +111,10 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
                   additive=item.additive || field.additive,
                   hidden=item.hidden || field.hidden,
                 )
+              else if fieldnameValue(item.fieldname) == fieldname
+                      && self.isField(item)
+                      && self.isField(field)
+              then std.trace('WARNING: error in deepMergeObjectFields: duplicate fieldname %s (keeping latter)' % fieldname, field)
               else item,
             acc,
           )
