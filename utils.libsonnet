@@ -159,7 +159,7 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
                 && matchFieldname(acc.fieldname, fieldname)
         then acc
         else if self.type(acc) == 'field'
-                && self.isObject(ast.expr)
+                && self.isObject(acc.expr)
         then get(acc.expr)
 
         else if self.isObject(acc)
