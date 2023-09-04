@@ -96,9 +96,11 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
               then
                 j.field.field(
                   field.fieldname,
-                  self.deepMergeObjectFields(
-                    item.expr.members
-                    + field.expr.members,
+                  j.object.members(
+                    self.deepMergeObjectFields(
+                      item.expr.members
+                      + field.expr.members,
+                    )
                   ),
                   additive=item.additive || field.additive,
                   hidden=item.hidden || field.hidden,
