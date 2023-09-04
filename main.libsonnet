@@ -8,8 +8,14 @@
   'false': root.literal(false),
   'self': root.literal('self'),
   dollar: root.literal('$'),
-  string(string): root.literal("'%s'" % string),
   number(number): root.literal(number),
+
+  string(string): {
+    type: 'string',
+    string: string,
+    toString(indent='', break=''):
+      indent + std.toString("'%s'" % string),
+  },
 
   parenthesis(expr): {
     toString(indent='', break=''): indent + '(' + expr.toString(indent, break) + ')',
@@ -31,12 +37,13 @@
 
   object: {
     members(members=[]): {
+      type: 'object',
       members: members,
 
       local duplicates = findDuplicates(
         std.filterMap(
           function(m) 'fieldname' in m,
-          function(m) m.fieldname.toString(),
+          function(m) m.fieldname[m.fieldname.type],
           members,
         )
       ),
@@ -176,13 +183,15 @@
       ]),
   },
 
-  id(string): {
+  id(id): {
+    type: 'id',
+    id: id,
     toString(indent='', break=''):
       (if break != ''
        then '    '
        else '') +
       indent
-      + std.toString(string),
+      + std.toString(id),
   },
 
   localbind(bind, expr, binds=[]): {
@@ -296,8 +305,12 @@
 
   field: {
     field(fieldname, expr, additive=false, hidden=false, nobreak=false): {
+      type: 'field',
       fieldname: fieldname,
       expr: expr,
+      additive: additive,
+      hidden: hidden,
+
       toString(indent='', break=''):
         std.join('', [
           indent,
@@ -315,7 +328,12 @@
         ]),
     },
     func(fieldname, expr, params=[], hidden=false, nobreak=false): {
+      type: 'function',
       fieldname: fieldname,
+      expr: expr,
+      params: params,
+      hidden: hidden,
+
       toString(indent='', break=''):
         std.join('', [
           indent,
@@ -368,6 +386,8 @@
     id: root.id,
     string: root.string,
     expr(expr): {
+      type: 'expr',
+      expr: expr,
       toString(): '[%s]' % expr.toString(),
     },
   },
