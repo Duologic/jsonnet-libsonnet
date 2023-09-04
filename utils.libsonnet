@@ -142,13 +142,16 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
   getFieldFromPath(ast, path):
     std.foldl(
       function(acc, fieldname)
-        self.get(
-          acc,
-          fieldname,
-          if std.startsWith(fieldname, '#')
-          then null  // Don't error on docstring fields
-          else error 'field %s on path %s not found' % [fieldname, path]
-        ),
+        if fieldname == ''  // fieldname can be empty if path='.'
+        then acc
+        else
+          self.get(
+            acc,
+            fieldname,
+            if std.startsWith(fieldname, '#')
+            then null  // Don't error on docstring fields
+            else error 'field %s on path %s not found' % [fieldname, path]
+          ),
       xtd.string.splitEscape(path, '.'),
       ast,
     ),
