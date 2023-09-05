@@ -1,7 +1,12 @@
 {
   local root = self,
 
-  literal(literal): { toString(indent='', break=''):: indent + std.toString(literal) },
+  literal(literal): {
+    type: 'literal',
+    literal: literal,
+    toString(indent='', break='')::
+      indent + std.toString(literal),
+  },
 
   'null': root.literal(null),
   'true': root.literal(true),
@@ -18,7 +23,10 @@
   },
 
   parenthesis(expr): {
-    toString(indent='', break=''):: indent + '(' + expr.toString(indent, break) + ')',
+    type: 'parenthesis',
+    expr: expr,
+    toString(indent='', break='')::
+      indent + '(' + expr.toString(indent, break) + ')',
   },
 
   local findDuplicates(arr) =
@@ -72,6 +80,11 @@
         ]),
     },
     forloop(idexpr, expr, forspec, compspec=[]): {
+      type: 'objforloop',
+      idexpr: idexpr,
+      expr: expr,
+      forspec: forspec,
+      compspec: compspec,
       toString(indent='', break='')::
         indent
         + std.join(
@@ -95,6 +108,8 @@
 
   array: {
     items(items=[]): {
+      type: 'array',
+      items: items,
       toString(indent='', break='')::
         std.join('', [
           indent,
@@ -117,6 +132,10 @@
         ]),
     },
     forloop(expr, forspec, compspec=[]): {
+      type: 'forloop',
+      expr: expr,
+      forspec: forspec,
+      compspec: compspec,
       toString(indent='', break='')::
         std.join(
           '\n' + indent,
@@ -135,6 +154,9 @@
   },
 
   fieldaccess(exprs, id): {
+    type: 'fieldaccess',
+    exprs: exprs,
+    id: id,
     toString(indent='', break='')::
       std.join(
         '.',
@@ -149,6 +171,10 @@
   },
 
   indexing(expr, exprs=[]): {
+    type: 'indexing',
+    expr: expr,
+    exprs: exprs,
+
     assert std.length(exprs) > 0,
     assert std.length(exprs) < 4,
 
@@ -164,12 +190,23 @@
       ]),
   },
 
-  'super': {
-    id(id): { toString(indent='', break=''):: indent + 'super.' + id.toString() },
-    expr(expr): { toString(indent='', break=''):: indent + 'super' + expr.toString() },
+  fieldaccess_super(id): {
+    type: 'fieldaccess_super',
+    id: id,
+    toString(indent='', break='')::
+      indent + 'super.' + id.toString(),
+  },
+  indexing_super(expr): {
+    type: 'indexing_super',
+    expr: expr,
+    toString(indent='', break='')::
+      indent + 'super[' + expr.toString() + ']',
   },
 
   functioncall(expr, args=[]): {
+    type: 'functioncall',
+    expr: expr,
+    args: args,
     toString(indent='', break='')::
       indent
       + std.join('', [
@@ -195,6 +232,10 @@
   },
 
   localbind(bind, expr, binds=[]): {
+    type: 'localbind',
+    bind: bind,
+    expr: expr,
+    binds: binds,
     toString(indent='', break='')::
       indent
       + std.join(
@@ -214,6 +255,10 @@
   },
 
   conditional(ifexpr, thenexpr, elseexpr=null): {
+    type: 'conditional',
+    ifexpr: ifexpr,
+    thenexpr: thenexpr,
+    elseexpr: elseexpr,
     toString(indent='', break='')::
       std.join(
         '',
@@ -239,6 +284,9 @@
   },
 
   binary(sign, exprs=[]): {
+    type: 'binary',
+    sign: sign,
+    exprs: exprs,
     toString(indent='', break='')::
       indent
       + std.join(
@@ -254,12 +302,18 @@
   },
 
   unary(sign, expr): {
+    type: 'unary',
+    sign: sign,
+    expr: expr,
     toString(indent='', break='')::
       sign
       + expr.toString(indent, break),
   },
 
   anonymousfunction(expr, params=[]): {
+    type: 'anonymousfunction',
+    expr: expr,
+    params: params,
     toString(indent='', break='')::
       std.join('', [
         indent,
@@ -272,7 +326,10 @@
       ]),
   },
 
-  _assertion_expr(assertion, expr): {
+  assertion_expr(assertion, expr): {
+    type: 'assertion_expr',
+    assertion: assertion,
+    expr: expr,
     toString(indent='', break='')::
       std.join(';', [
         assertion.toString(indent, break),
@@ -280,11 +337,24 @@
       ]),
   },
 
-  importF(string): { toString(indent='', break=''):: indent + 'import ' + root.string(string).toString() },
-  importstrF(string): { toString(indent='', break=''):: indent + 'importstr ' + root.string(string).toString() },
-  importbinF(string): { toString(indent='', break=''):: indent + 'importbin ' + root.string(string).toString() },
+  _import(path, type): {
+    type: type,
+    path: path,
+    toString(indent='', break='')::
+      std.join('', [
+        indent,
+        type,
+        ' ',
+        root.path(path).toString(),
+      ]),
+  },
+  importF(path): self._import(path, 'import'),
+  importstrF(path): self._import(path, 'importstr'),
+  importbinF(path): self._import(path, 'importbin'),
 
   err(expr): {
+    type: 'err',
+    expr: expr,
     toString(indent='', break='')::
       indent
       + 'error '
@@ -292,6 +362,8 @@
   },
 
   expr_in_super(expr): {
+    type: 'expr_in_super',
+    expr: expr,
     toString(indent='', break='')::
       expr.toString(indent, break)
       + ' in super',
@@ -354,6 +426,8 @@
   },
 
   objlocal(bind): {
+    type: 'objlocal',
+    bind: bind,
     toString(indent='', break='')::
       indent
       + std.join(' ', [
@@ -368,6 +442,9 @@
   },
 
   forspec(id, expr): {
+    type: 'forspec',
+    id: id,
+    expr: expr,
     toString(indent)::
       indent
       + std.join(' ', [
@@ -379,20 +456,26 @@
   },
 
   ifspec(expr): {
-    toString(indent=''):: indent + 'if ' + expr.toString(),
+    type: 'ifspec',
+    expr: expr,
+    toString(indent='')::
+      indent + 'if ' + expr.toString(),
   },
 
   fieldname: {
     id: root.id,
     string: root.string,
     expr(expr): {
-      type: 'expr',
+      type: 'fieldnameexpr',
       expr: expr,
       toString():: '[%s]' % expr.toString(),
     },
   },
 
   assertion(expr, return=null): {
+    type: 'assertion',
+    expr: expr,
+    return: return,
     toString(indent='', break='')::
       std.join(
         ' ',
@@ -409,6 +492,9 @@
 
   bind: {
     bind(id, expr): {
+      type: 'bind',
+      id: id,
+      expr: expr,
       toString(indent='', break='')::
         std.join('', [
           id.toString(),
@@ -417,6 +503,10 @@
         ]),
     },
     func(id, expr, params=[]): {
+      type: 'func',
+      id: id,
+      expr: expr,
+      params: params,
       toString(indent='', break='')::
         std.join('', [
           id.toString(),
@@ -433,6 +523,9 @@
   arg: {
     expr(expr): expr,
     id(id, expr): {
+      type: 'argid',
+      id: id,
+      expr: expr,
       toString()::
         std.join('', [
           id.toString(),
@@ -443,6 +536,8 @@
   },
 
   params(params): {
+    type: 'params',
+    params: params,
     toString()::
       std.join(
         ', ',
@@ -456,6 +551,9 @@
   param: {
     id: root.id,
     expr(id, expr): {
+      type: 'paramexpr',
+      id: id,
+      expr: expr,
       toString()::
         std.join('', [
           id.toString(),
