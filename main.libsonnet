@@ -345,7 +345,7 @@
         indent,
         type,
         ' ',
-        root.path(path).toString(),
+        root.string(path).toString(),
       ]),
   },
   importF(path): self._import(path, 'import'),
