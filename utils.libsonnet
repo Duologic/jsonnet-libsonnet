@@ -3,12 +3,12 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
 
 {
   local matchFieldname(astFieldname, fieldname) =
-    local value = fieldnameValue(astFieldname);
+    local value = self.fieldnameValue(astFieldname);
     if value != null
     then value == fieldname
     else false,
 
-  local fieldnameValue(astFieldname) =
+  fieldnameValue(astFieldname):
     if std.member(['id', 'string'], astFieldname.type)
     then astFieldname[astFieldname.type]
     else null,
@@ -91,13 +91,13 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
   deepMergeObjectFields(astFields):
     std.foldl(
       function(acc, field)
-        local fieldname = fieldnameValue(field.fieldname);
+        local fieldname = self.fieldnameValue(field.fieldname);
         if fieldname != null
            && self.objectHasAll(j.object.members(acc), fieldname)
         then
           std.map(
             function(item)
-              if fieldnameValue(item.fieldname) == fieldname
+              if self.fieldnameValue(item.fieldname) == fieldname
                  && self.isField(item)
                  && self.isField(field)
                  && self.isObject(item.expr)
@@ -114,10 +114,10 @@ local xtd = import 'github.com/jsonnet-libs/xtd/main.libsonnet';
                   additive=item.additive || field.additive,
                   hidden=item.hidden || field.hidden,
                 )
-              else if fieldnameValue(item.fieldname) == fieldname
+              else if self.fieldnameValue(item.fieldname) == fieldname
                       && self.type(item) == self.type(field)
               then std.trace('WARNING: error in deepMergeObjectFields: duplicate fieldname %s (keeping latter)' % fieldname, field)
-              else if fieldnameValue(item.fieldname) == fieldname
+              else if self.fieldnameValue(item.fieldname) == fieldname
               then error 'error in deepMergeObjectFields: duplicate fieldname %s' % fieldname
               else item,
             acc,
